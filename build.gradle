@@ -1,0 +1,35 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+version = '1.0'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+  mavenCentral()
+  maven {
+    url 'http://maven.opennms.org/content/groups/opennms.org-release'
+  }
+}
+
+dependencies {
+  compile 'info.picocli:picocli:3.9.1'
+  compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.11.2'
+  compile 'org.opennms:opennms-model:23.0.3'
+  compile 'org.opennms:opennms-config-model:23.0.3'
+  compile 'org.opennms:opennms-config-jaxb:23.0.3'
+  compile fileTree(dir: 'libs', include: '*.jar')
+  testCompile 'junit:junit:4.12'
+}
+
+task fatJar(type: Jar) {
+  manifest {
+    attributes 'Implementation-Title': 'MIB->Config for OpenNMS',  
+               'Implementation-Version': version,
+               'Main-Class': 'org.opennms.tools.mib2conf.Mib2Conf'
+  }
+  baseName = 'mib2conf-all'
+  from { configurations.runtime.filter({!(it.name =~ /\.pom$/)}).collect { it.isDirectory() ? it : zipTree(it) } }
+  exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+  with jar
+}
