@@ -7,13 +7,17 @@
 
  WWP-ESM-MIB DEFINITIONS ::= BEGIN
 	IMPORTS
-		enterprises, OBJECT-TYPE, IpAddress, TimeTicks, Gauge32, NOTIFICATION-TYPE
+		enterprises, OBJECT-TYPE, IpAddress, TimeTicks, Gauge32, NOTIFICATION-TYPE, Integer32, Unsigned32
 			FROM SNMPv2-SMI
 		RowStatus, DisplayString, DateAndTime, TruthValue
 			FROM SNMPv2-TC
+		snmpTrapOID
+			FROM SNMPv2-MIB
+		snmpTrapAddress
+			FROM SNMP-COMMUNITY-MIB
 		enterprises
 			FROM RFC1155-SMI
-		DisplayString
+		DisplayString, sysUpTime
 			FROM RFC1213-MIB
 		InetAddressType, InetAddress
 			FROM INET-ADDRESS-MIB 
@@ -2862,7 +2866,7 @@ v3TrapForwardingTable	OBJECT-TYPE
 		::=  {  nodeDiscoveryEntry  5  }
 
 	snmpVersion	OBJECT-TYPE	
-		SYNTAX			TruthValue  { SNMPv1 ( 1 ) , SNMPv2c ( 2 ) , SNMPv3 ( 3 ) } 
+		SYNTAX			TruthValue  { snmpv1 ( 1 ) , snmpv2c ( 2 ) , snmpv3 ( 3 ) } 
 		MAX-ACCESS		read-write
 		STATUS			current
 		DESCRIPTION		
@@ -2924,7 +2928,7 @@ v3TrapForwardingTable	OBJECT-TYPE
 		::=  {  moCriteriaEntry  1  }
 
 	propertyName	OBJECT-TYPE	
-		SYNTAX			TruthValue  { Name ( 1 ) , Type ( 2 ) , ipAddress ( 3 ) , SysOID ( 4 ) , isSNMP ( 5 ) } 
+		SYNTAX			TruthValue  { name ( 1 ) , type ( 2 ) , ipAddress ( 3 ) , sysOID ( 4 ) , isSNMP ( 5 ) } 
 		MAX-ACCESS		read-write
 		STATUS			current
 		DESCRIPTION		
@@ -3305,7 +3309,7 @@ v3TrapForwardingTable	OBJECT-TYPE
 		}
 
 	moEnrolNotification	NOTIFICATION-TYPE
-		OBJECTS			{ sequenceNum ,moName ,moownerName ,moType ,moEnrollTime ,extraProperties, moIpAddress ,moIpAddressAddrType ,moIpAddressAddr }
+		OBJECTS			{ sequenceNum ,moName ,moownerName ,moType ,moEnrolTime ,moExtraProperties, moIpAddress ,moIpAddressAddrType ,moIpAddressAddr }
 		STATUS			current
 		DESCRIPTION		
 				"The ESMAgent sends a moEnrolNotification to the manager when an MO has been
@@ -3313,7 +3317,7 @@ v3TrapForwardingTable	OBJECT-TYPE
 		::=  {  moNotifications  1  }
 
 	moDeenrolNotification	NOTIFICATION-TYPE
-		OBJECTS			{ sequenceNum ,moName ,moownerName ,moType ,moDeEnrolTime ,extraProperties, moIpAddress ,moIpAddressAddrType ,moIpAddressAddr  }
+		OBJECTS			{ sequenceNum ,moName ,moownerName ,moType ,moDeEnrolTime ,moExtraProperties, moIpAddress ,moIpAddressAddrType ,moIpAddressAddr  }
 		STATUS			current
 		DESCRIPTION		
 				"The ESMAgent sends a moDeenrolNotification to the manager when an MO has been
@@ -3321,7 +3325,7 @@ v3TrapForwardingTable	OBJECT-TYPE
 		::=  {  moNotifications  2  }
 
 	moAttrChangeNotification	NOTIFICATION-TYPE
-		OBJECTS			{ sequenceNum ,moName ,moownerName ,moType ,moDataChangeTime ,extraProperties, moIpAddress ,moIpAddressAddrType ,moIpAddressAddr  }
+		OBJECTS			{ sequenceNum ,moName ,moownerName ,moType ,moDataChangeTime ,moExtraProperties, moIpAddress ,moIpAddressAddrType ,moIpAddressAddr  }
 		STATUS			current
 		DESCRIPTION		
 				"The ESMAgent sends a moAttrChangeNotification to the manager 
@@ -3618,7 +3622,7 @@ v3TrapForwardingTable	OBJECT-TYPE
 		::=  {  alertNotifications  5  }
 
 	alertCustomNBINotification	NOTIFICATION-TYPE
-		OBJECTS			{ sysUpTime, snmpTrapOID, snmpTrapAddress, alertEmsTime, alertNeTime, alertEmsName , alertentity , alertNeNodeId , alertNeNodeName, alertObjectType , alertObjectName , alertSeverity , alertServiceAffecting , alertcategory , alertProbableCauseDescription , alertAdditionalText, alertEventType, alertExtraProperties }
+		OBJECTS			{ sysUpTime, snmpTrapOID, snmpTrapAddress, alertEmsTime, alertNeTime, alertEmsName , alertentity , alertNeNodeId , alertNeNodeName, alertObjectType , alertObjectName , alertseverity , alertServiceAffecting , alertcategory , alertProbableCauseDescription , alertAdditionalText, alertEventType, alertExtraProperties }
 		STATUS			current
 		DESCRIPTION		
 				"The ESM-Agent sends an alertCustomNBINotification to the manager for every SNMP v1 or v2 notification received from the device"
@@ -3747,7 +3751,7 @@ v3TrapForwardingTable	OBJECT-TYPE
 				Content may vary specific to customer deployments and as defined by trap customizer feature of ESM."
 		::=  {  alertNotiVarbinds  14  }
 
-	alertSeverity	OBJECT-TYPE	
+	alertseverity	OBJECT-TYPE	
 		SYNTAX		DisplayString  ( SIZE ( 0 .. 20  ) ) 
 		MAX-ACCESS		read-only
 		STATUS		current
@@ -3815,14 +3819,6 @@ v3TrapForwardingTable	OBJECT-TYPE
 		DESCRIPTION 
 				"This variable provides the V4/V6 IP Address of the device that this alert relates to"
 		::= {alertNotiVarbinds 22 }
-	thresholdNotification	NOTIFICATION-TYPE
-		OBJECTS			{ name ,kind ,message ,triggerseverity ,resetSeverity ,allowedvalues ,disallowedvalues  }
-		STATUS			current
-		DESCRIPTION		
-				"This notification is generated for the threshold objects
-				which return a string value, when they exceed or fall below
-				a particular threshold value."
-		::=  {  perfNotifications  1  }
 
 	eventid	OBJECT-TYPE	
 		SYNTAX			Integer32
@@ -3864,16 +3860,6 @@ v3TrapForwardingTable	OBJECT-TYPE
 				"This variable  is the Severity of the Event object."
 		::=  {  perfNotiVarbinds  5  }
 
-	alertExtraProperties	OBJECT-TYPE	
-		SYNTAX			DisplayString  ( SIZE ( 0 .. 255  ) ) 
-		MAX-ACCESS		read-only
-		STATUS			current
-		DESCRIPTION		
-				"The values for the user properties which the user
-				specifies in the alertExtraPropNames variable are sent as part of the notifications
-				The values will be displayed in the folloing format:
-				propName1=value1,porpName2=vaule2,...."
-		::=  {  alertNotiVarbinds  7  }
 
 	reDiscover	OBJECT-TYPE	
 		SYNTAX			TruthValue  { true ( 1 ) , false ( 2 ) } 
