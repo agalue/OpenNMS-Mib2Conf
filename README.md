@@ -30,6 +30,8 @@ Usage: mib2conf [-hV] -m=mib [-t=target]
   -V, --version         Print version information and exit.
 ```
 
+The `mibs` directory contains multiple core MIBs and several sample MIBs to help you compile your own. The idea is copy your new MIB there, and try to compile it. If more dependencies are needed, find and download those dependencies, and copy them to that folder as well.
+
 # Future Enhancements
 
 * Implement a name cutter for the MibObj aliases. For this, do it after generating the configuration, in order to have a common preffix for all the aliases on the same group, and then cut the names based on a common prefix to make the aliases more readable, which is the problem with the current implementation.
