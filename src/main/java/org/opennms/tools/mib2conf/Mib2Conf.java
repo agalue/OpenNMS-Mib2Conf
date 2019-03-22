@@ -98,18 +98,24 @@ public class Mib2Conf implements Runnable {
                 if (events.getEvents().isEmpty()) {
                     LOG.warn("No traps were found on {}", mib.getName());
                 } else {
-                    System.out.println(JaxbUtils.marshal(events)); // FIXME
+                    JaxbUtils.marshal(events, getXMLFile(mib));
                 }
             }
             if (target == ConfTarget.dataCollection) {
                 DatacollectionGroup group = getDataCollection(mib);
-                System.out.println(JaxbUtils.marshal(group)); // FIXME
+                JaxbUtils.marshal(group, getXMLFile(mib));
             }
         } catch (MibLoaderException e) {
             e.getLog().printTo(System.err);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public File getXMLFile(Mib mib) {
+        File file = new File(mib.getName() + ".events.xml");
+        LOG.info("The XML content fill be added to the file '{}'...", file);
+        return file;
     }
 
     public Mib loadMib(File file) throws MibLoaderException, IOException {
@@ -297,6 +303,8 @@ public class Mib2Conf implements Runnable {
 
     private String getTrapEventDescr(MibValueSymbol trapValueSymbol) {
         String description = ((SnmpType) trapValueSymbol.getType()).getDescription();
+        if (description == null)
+            description = "";
         final StringBuffer buffer = new StringBuffer(description);
         buffer.append("\n\t<table>\n");
         int vbNum = 1;

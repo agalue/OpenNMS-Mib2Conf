@@ -23,7 +23,7 @@ public class Mib2ConfTest {
     }
 
     @Test
-    public void testEvents() throws Exception {
+    public void testEvents1() throws Exception {
         Mib2Conf mib2Conf = new Mib2Conf();
         Mib mib = mib2Conf.loadMib(new File("mibs/BATM-DRY-CONTACTS-MIB.my"));
         Events events = mib2Conf.getEvents(mib, "uei.opennms.org/traps/" + mib.getName());
@@ -31,4 +31,15 @@ public class Mib2ConfTest {
         Assert.assertEquals(1, events.getEvents().size());
         Assert.assertEquals("uei.opennms.org/traps/BATM-DRY-CONTACTS-MIB/inputStateChangedTrap", events.getEvents().get(0).getUei());
     }
+
+    @Test
+    public void testEvents2() throws Exception {
+        Mib2Conf mib2Conf = new Mib2Conf();
+        Mib mib = mib2Conf.loadMib(new File("mibs/GWMONITOR-MIB.mib"));
+        Events events = mib2Conf.getEvents(mib, "uei.opennms.org/traps/" + mib.getName());
+        System.out.println(JaxbUtils.marshal(events));
+        Assert.assertEquals(6, events.getEvents().size());
+        Assert.assertEquals("uei.opennms.org/traps/GWMONITOR-MIB/gwmonThresholdExceededTrap", events.getEvents().get(0).getUei());
+    }
+
 }
